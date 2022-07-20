@@ -42,7 +42,30 @@ function checksCreateTodosUserAvailability(request, response, next) {
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+  const { id } = request.params;
+
+  const validadeId = validate(id);
+  if (!validadeId) {
+    return response.status(400);
+  }
+
+  const user = users.find((user) => user.username === username);
+
+  if (!user) {
+    return response.status(404).json({ error: "Usuário não encontrado" });
+  }
+
+  const todo = user.todos.find((todo) => todo.id === id);
+
+  if (!todo) {
+    return response.status(404).json({ error: "To-do não encotrado" });
+  }
+
+  request.user = user;
+  request.todo = todo;
+
+  return next();
 }
 
 function findUserById(request, response, next) {
@@ -85,8 +108,6 @@ app.post("/users", (request, response) => {
 
 app.get("/users/:id", findUserById, (request, response) => {
   const { user } = request;
-  const { id } = request.params;
-  console.log(id);
 
   return response.json(user);
 });
